@@ -180,10 +180,9 @@ const Reports = () => {
 
             {filterType !== 'lifetime' && (
               <select className="btn btn-secondary" value={selectedYear} onChange={e => setSelectedYear(e.target.value)} style={{ padding: '0.5rem' }}>
-                <option value="2024">2024</option>
-                <option value="2025">2025</option>
-                <option value="2026">2026</option>
-                <option value="2027">2027</option>
+                {Array.from({length: 50}, (_, i) => 2024 + i).map(year => (
+                  <option key={year} value={year}>{year}</option>
+                ))}
               </select>
             )}
 
