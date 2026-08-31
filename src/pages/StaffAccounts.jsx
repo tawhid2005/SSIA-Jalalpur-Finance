@@ -86,6 +86,13 @@ const StaffAccounts = () => {
               <label>Password *</label>
               <input type="text" value={formData.password} onChange={e => setFormData({...formData, password: e.target.value})} required placeholder="Enter password" />
             </div>
+            <div className="input-group">
+              <label>Role *</label>
+              <select value={formData.role} onChange={e => setFormData({...formData, role: e.target.value})} required>
+                <option value="teacher">Teacher (Attendance Only)</option>
+                <option value="manager">Manager (Operations Access)</option>
+              </select>
+            </div>
             <div style={{ gridColumn: '1 / -1', display: 'flex', justifyContent: 'flex-end' }}>
               <button type="submit" className="btn btn-primary">Save Account</button>
             </div>

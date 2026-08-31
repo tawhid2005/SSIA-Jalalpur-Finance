@@ -54,6 +54,18 @@ const Sidebar = ({ onLogout, isMobileOpen, setMobileOpen, currentUser }) => {
       { path: '/staff-accounts', icon: UserCog, label: 'Staff Accounts' },
       { path: '/reports', icon: PieChart, label: 'Reports & P&L' }
     ];
+  } else if (currentUser?.role === 'manager') {
+    navItems = [
+      { path: '/students', icon: Users, label: 'Students Master' },
+      { path: '/mock-tests', icon: FileText, label: 'Mock Tests' },
+      { path: '/fees', icon: CreditCard, label: 'Fee Collection' },
+      { path: '/due-management', icon: AlertCircle, label: 'Due Management' },
+      { path: '/income', icon: TrendingUp, label: 'Other Income' },
+      { path: '/expenses', icon: TrendingDown, label: 'General Expenses' },
+      { path: '/marketing', icon: Megaphone, label: 'Marketing Expenses' },
+      { path: '/salary', icon: Briefcase, label: 'Teacher Salary' },
+      { path: '/attendance', icon: Clock, label: 'My Attendance' }
+    ];
   } else {
     // Teacher Role
     navItems = [
@@ -185,7 +197,9 @@ const App = () => {
           <div className="mobile-header mobile-only" style={{ padding: '1rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid var(--border-light)', marginBottom: '1rem' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
               <img src="/pwa-icon.png" alt="Logo" style={{ width: '32px', height: '32px', borderRadius: '4px', background: 'white', padding: '2px' }} />
-              <span style={{ fontWeight: 'bold' }}>{currentUser.role === 'admin' ? 'SSIA Admin' : 'SSIA Staff'}</span>
+              <span style={{ fontWeight: 'bold' }}>
+                {currentUser.role === 'admin' ? 'SSIA Admin' : currentUser.role === 'manager' ? 'SSIA Manager' : 'SSIA Staff'}
+              </span>
             </div>
             <button onClick={() => setIsMobileMenuOpen(true)} style={{ background: 'transparent', border: 'none', color: 'var(--text-primary)' }}>
               <Menu size={28} />
@@ -206,6 +220,20 @@ const App = () => {
                 <Route path="/attendance" element={<Attendance currentUser={currentUser} />} />
                 <Route path="/staff-accounts" element={<StaffAccounts />} />
                 <Route path="/reports" element={<Reports />} />
+              </>
+            ) : currentUser.role === 'manager' ? (
+              <>
+                <Route path="/students" element={<Students />} />
+                <Route path="/mock-tests" element={<MockTests />} />
+                <Route path="/fees" element={<Fees />} />
+                <Route path="/due-management" element={<DueManagement />} />
+                <Route path="/income" element={<Income />} />
+                <Route path="/expenses" element={<Expenses />} />
+                <Route path="/marketing" element={<Marketing />} />
+                <Route path="/salary" element={<TeacherSalary />} />
+                <Route path="/attendance" element={<Attendance currentUser={currentUser} />} />
+                {/* Fallback route for manager */}
+                <Route path="*" element={<Students />} />
               </>
             ) : (
               <Route path="*" element={<Attendance currentUser={currentUser} />} />

@@ -4,21 +4,22 @@ import { LogIn, LogOut, Trash2, Clock } from 'lucide-react';
 
 const Attendance = ({ currentUser }) => {
   const [attendanceList, setAttendanceList] = useState([]);
-  const [teacherName, setTeacherName] = useState(currentUser?.role === 'teacher' ? currentUser.name : '');
+  const isTeacherOrManager = currentUser?.role === 'teacher' || currentUser?.role === 'manager';
+  const [teacherName, setTeacherName] = useState(isTeacherOrManager ? currentUser.name : '');
   const [deleteId, setDeleteId] = useState(null);
   const [checkOutRecord, setCheckOutRecord] = useState(null);
   const [activityNote, setActivityNote] = useState('');
   const [activeSession, setActiveSession] = useState(null);
   const [elapsedTime, setElapsedTime] = useState('00:00:00');
 
-  const isTeacher = currentUser?.role === 'teacher';
+  const isTeacher = isTeacherOrManager;
 
   const loadAttendance = async () => {
     const data = await db.attendance.toArray();
     let filteredData = data.sort((a, b) => new Date(b.date) - new Date(a.date));
     
-    // If teacher, only show their own records
-    if (currentUser?.role === 'teacher') {
+    // If teacher or manager, only show their own records on this page
+    if (isTeacher) {
       filteredData = filteredData.filter(a => a.teacher === currentUser.name);
     }
     
