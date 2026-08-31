@@ -1,19 +1,44 @@
 import React, { useState } from 'react';
-import { Lock, User } from 'lucide-react';
+import { Lock, User, Loader2 } from 'lucide-react';
+import { db } from '../db';
 
 const Login = ({ onLogin }) => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // Custom ID/Password
+    setIsLoading(true);
+    setError('');
+
+    // Custom Admin ID/Password
     if (username === 'ssiajalalpur@gmail.com' && password === 'SSIA@@##') {
-      onLogin();
-    } else {
-      setError('Invalid Username or Password');
+      onLogin({ role: 'admin', username: 'admin', name: 'Administrator' });
+      setIsLoading(false);
+      return;
+    } 
+    
+    // Check Staff Accounts
+    try {
+      const staffAccounts = await db.staff_accounts.toArray();
+      const account = staffAccounts.find(a => 
+        a.username.toLowerCase() === username.toLowerCase() && 
+        a.password === password
+      );
+
+      if (account) {
+        onLogin({ role: 'teacher', username: account.username, name: account.name });
+      } else {
+        setError('Invalid Username or Password');
+      }
+    } catch (err) {
+      console.error(err);
+      setError('An error occurred during login.');
     }
+    
+    setIsLoading(false);
   };
 
   return (
@@ -57,8 +82,8 @@ const Login = ({ onLogin }) => {
             </div>
           </div>
 
-          <button type="submit" className="btn btn-primary" style={{ marginTop: '1rem', padding: '1rem' }}>
-            Login to Dashboard
+          <button type="submit" className="btn btn-primary" style={{ marginTop: '1rem', padding: '1rem', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '0.5rem' }} disabled={isLoading}>
+            {isLoading ? <Loader2 size={18} className="spin" /> : 'Login to Dashboard'}
           </button>
         </form>
       </div>

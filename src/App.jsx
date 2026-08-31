@@ -16,7 +16,8 @@ import {
   X,
   MapPin,
   Phone,
-  Clock
+  Clock,
+  UserCog
 } from 'lucide-react';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
@@ -29,25 +30,36 @@ import Expenses from './pages/Expenses';
 import Marketing from './pages/Marketing';
 import TeacherSalary from './pages/TeacherSalary';
 import Attendance from './pages/Attendance';
+import StaffAccounts from './pages/StaffAccounts';
 import Reports from './pages/Reports';
 import './index.css';
 
-const Sidebar = ({ onLogout, isMobileOpen, setMobileOpen }) => {
+const Sidebar = ({ onLogout, isMobileOpen, setMobileOpen, currentUser }) => {
   const location = useLocation();
   
-  const navItems = [
-    { path: '/', icon: LayoutDashboard, label: 'Dashboard' },
-    { path: '/students', icon: Users, label: 'Students Master' },
-    { path: '/mock-tests', icon: FileText, label: 'Mock Tests' },
-    { path: '/fees', icon: CreditCard, label: 'Fee Collection' },
-    { path: '/due-management', icon: AlertCircle, label: 'Due Management' },
-    { path: '/income', icon: TrendingUp, label: 'Other Income' },
-    { path: '/expenses', icon: TrendingDown, label: 'General Expenses' },
-    { path: '/marketing', icon: Megaphone, label: 'Marketing Expenses' },
-    { path: '/salary', icon: Briefcase, label: 'Teacher Salary' },
-    { path: '/attendance', icon: Clock, label: 'Staff Attendance' },
-    { path: '/reports', icon: PieChart, label: 'Lifetime Reports & P&L' }
-  ];
+  let navItems = [];
+  
+  if (currentUser?.role === 'admin') {
+    navItems = [
+      { path: '/', icon: LayoutDashboard, label: 'Dashboard' },
+      { path: '/students', icon: Users, label: 'Students Master' },
+      { path: '/mock-tests', icon: FileText, label: 'Mock Tests' },
+      { path: '/fees', icon: CreditCard, label: 'Fee Collection' },
+      { path: '/due-management', icon: AlertCircle, label: 'Due Management' },
+      { path: '/income', icon: TrendingUp, label: 'Other Income' },
+      { path: '/expenses', icon: TrendingDown, label: 'General Expenses' },
+      { path: '/marketing', icon: Megaphone, label: 'Marketing Expenses' },
+      { path: '/salary', icon: Briefcase, label: 'Teacher Salary' },
+      { path: '/attendance', icon: Clock, label: 'Staff Attendance' },
+      { path: '/staff-accounts', icon: UserCog, label: 'Staff Accounts' },
+      { path: '/reports', icon: PieChart, label: 'Reports & P&L' }
+    ];
+  } else {
+    // Teacher Role
+    navItems = [
+      { path: '/', icon: Clock, label: 'My Attendance' }
+    ];
+  }
 
   return (
     <div className={`sidebar print-hide ${isMobileOpen ? 'open' : ''}`} style={{
@@ -137,27 +149,27 @@ const Sidebar = ({ onLogout, isMobileOpen, setMobileOpen }) => {
 };
 
 const App = () => {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [currentUser, setCurrentUser] = useState(null);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   useEffect(() => {
-    const auth = localStorage.getItem('isAuthenticated');
-    if (auth === 'true') {
-      setIsAuthenticated(true);
+    const user = localStorage.getItem('currentUser');
+    if (user) {
+      setCurrentUser(JSON.parse(user));
     }
   }, []);
 
-  const handleLogin = () => {
-    localStorage.setItem('isAuthenticated', 'true');
-    setIsAuthenticated(true);
+  const handleLogin = (user) => {
+    localStorage.setItem('currentUser', JSON.stringify(user));
+    setCurrentUser(user);
   };
 
   const handleLogout = () => {
-    localStorage.removeItem('isAuthenticated');
-    setIsAuthenticated(false);
+    localStorage.removeItem('currentUser');
+    setCurrentUser(null);
   };
 
-  if (!isAuthenticated) {
+  if (!currentUser) {
     return <Login onLogin={handleLogin} />;
   }
 
@@ -167,30 +179,37 @@ const App = () => {
         {isMobileMenuOpen && (
           <div className="mobile-overlay" onClick={() => setIsMobileMenuOpen(false)}></div>
         )}
-        <Sidebar onLogout={handleLogout} isMobileOpen={isMobileMenuOpen} setMobileOpen={setIsMobileMenuOpen} />
+        <Sidebar onLogout={handleLogout} isMobileOpen={isMobileMenuOpen} setMobileOpen={setIsMobileMenuOpen} currentUser={currentUser} />
         
         <main className="main-content">
           <div className="mobile-header mobile-only" style={{ padding: '1rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid var(--border-light)', marginBottom: '1rem' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
               <img src="/pwa-icon.png" alt="Logo" style={{ width: '32px', height: '32px', borderRadius: '4px', background: 'white', padding: '2px' }} />
-              <span style={{ fontWeight: 'bold' }}>SSIA Admin</span>
+              <span style={{ fontWeight: 'bold' }}>{currentUser.role === 'admin' ? 'SSIA Admin' : 'SSIA Staff'}</span>
             </div>
             <button onClick={() => setIsMobileMenuOpen(true)} style={{ background: 'transparent', border: 'none', color: 'var(--text-primary)' }}>
               <Menu size={28} />
             </button>
           </div>
           <Routes>
-            <Route path="/" element={<Dashboard />} />
-            <Route path="/students" element={<Students />} />
-            <Route path="/mock-tests" element={<MockTests />} />
-            <Route path="/fees" element={<Fees />} />
-            <Route path="/due-management" element={<DueManagement />} />
-            <Route path="/income" element={<Income />} />
-            <Route path="/expenses" element={<Expenses />} />
-            <Route path="/marketing" element={<Marketing />} />
-            <Route path="/salary" element={<TeacherSalary />} />
-            <Route path="/attendance" element={<Attendance />} />
-            <Route path="/reports" element={<Reports />} />
+            {currentUser.role === 'admin' ? (
+              <>
+                <Route path="/" element={<Dashboard />} />
+                <Route path="/students" element={<Students />} />
+                <Route path="/mock-tests" element={<MockTests />} />
+                <Route path="/fees" element={<Fees />} />
+                <Route path="/due-management" element={<DueManagement />} />
+                <Route path="/income" element={<Income />} />
+                <Route path="/expenses" element={<Expenses />} />
+                <Route path="/marketing" element={<Marketing />} />
+                <Route path="/salary" element={<TeacherSalary />} />
+                <Route path="/attendance" element={<Attendance currentUser={currentUser} />} />
+                <Route path="/staff-accounts" element={<StaffAccounts />} />
+                <Route path="/reports" element={<Reports />} />
+              </>
+            ) : (
+              <Route path="*" element={<Attendance currentUser={currentUser} />} />
+            )}
           </Routes>
         </main>
       </div>

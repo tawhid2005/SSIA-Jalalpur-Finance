@@ -1,17 +1,24 @@
 import React, { useState, useEffect } from 'react';
 import { db } from '../db';
-import { LogIn, LogOut, Edit2, Trash2, Clock } from 'lucide-react';
+import { LogIn, LogOut, Trash2, Clock } from 'lucide-react';
 
-const Attendance = () => {
+const Attendance = ({ currentUser }) => {
   const [attendanceList, setAttendanceList] = useState([]);
-  const [teacherName, setTeacherName] = useState('');
+  const [teacherName, setTeacherName] = useState(currentUser?.role === 'teacher' ? currentUser.name : '');
   const [deleteId, setDeleteId] = useState(null);
+  const [checkOutRecord, setCheckOutRecord] = useState(null);
+  const [activityNote, setActivityNote] = useState('');
 
   const loadAttendance = async () => {
     const data = await db.attendance.toArray();
-    // Sort by date descending, then time
-    data.sort((a, b) => new Date(b.date) - new Date(a.date));
-    setAttendanceList(data);
+    let filteredData = data.sort((a, b) => new Date(b.date) - new Date(a.date));
+    
+    // If teacher, only show their own records
+    if (currentUser?.role === 'teacher') {
+      filteredData = filteredData.filter(a => a.teacher === currentUser.name);
+    }
+    
+    setAttendanceList(filteredData);
   };
 
   useEffect(() => {
@@ -57,22 +64,38 @@ const Attendance = () => {
       teacher: teacherName,
       checkInTime: now.toISOString(),
       checkOutTime: null,
-      totalHours: '-'
+      totalHours: '-',
+      note: ''
     });
 
-    setTeacherName('');
+    if (currentUser?.role !== 'teacher') {
+      setTeacherName('');
+    }
     loadAttendance();
   };
 
-  const handleCheckOut = async (record) => {
+  const handleCheckOutClick = (record) => {
+    setCheckOutRecord(record);
+    setActivityNote('');
+  };
+
+  const confirmCheckOut = async (e) => {
+    e.preventDefault();
+    if (!activityNote.trim()) {
+      alert("Please write what activities you did today.");
+      return;
+    }
+
     const now = new Date();
-    const total = calculateTotalHours(record.checkInTime, now.toISOString());
+    const total = calculateTotalHours(checkOutRecord.checkInTime, now.toISOString());
     
-    await db.attendance.update(record.id, {
+    await db.attendance.update(checkOutRecord.id, {
       checkOutTime: now.toISOString(),
-      totalHours: total
+      totalHours: total,
+      note: activityNote
     });
 
+    setCheckOutRecord(null);
     loadAttendance();
   };
 
@@ -121,6 +144,34 @@ const Attendance = () => {
         </div>
       )}
 
+      {/* Check Out Note Modal */}
+      {checkOutRecord && (
+        <div className="print-modal-overlay" style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.8)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div className="glass-panel" style={{ width: '500px', maxWidth: '90%', background: 'var(--bg-panel)' }}>
+            <h3 style={{ color: 'var(--accent-primary)', marginBottom: '1rem' }}>Check Out</h3>
+            <p className="text-muted" style={{ marginBottom: '1.5rem' }}>Please write a short note about what activities you completed today.</p>
+            <form onSubmit={confirmCheckOut}>
+              <div className="input-group">
+                <label>Daily Activity Note *</label>
+                <textarea 
+                  rows="4" 
+                  value={activityNote} 
+                  onChange={(e) => setActivityNote(e.target.value)} 
+                  placeholder="e.g. Conducted 3 speaking mock tests, graded reading papers, answered student queries..." 
+                  required 
+                ></textarea>
+              </div>
+              <div style={{ display: 'flex', gap: '1rem', justifyContent: 'flex-end', marginTop: '2rem' }}>
+                <button type="button" className="btn btn-secondary" onClick={() => setCheckOutRecord(null)}>Cancel</button>
+                <button type="submit" className="btn btn-primary" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  <LogOut size={16} /> Submit & Check Out
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem', flexWrap: 'wrap', gap: '1rem' }}>
         <div>
           <h1>Staff Attendance</h1>
@@ -141,6 +192,8 @@ const Attendance = () => {
               placeholder="Enter your name..." 
               value={teacherName} 
               onChange={(e) => setTeacherName(e.target.value)} 
+              disabled={currentUser?.role === 'teacher'}
+              style={currentUser?.role === 'teacher' ? { background: 'rgba(255,255,255,0.05)', color: 'var(--text-muted)' } : {}}
             />
           </div>
           <button className="btn btn-primary" onClick={handleCheckIn} style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', height: 'fit-content' }}>
@@ -158,6 +211,7 @@ const Attendance = () => {
               <th>Check In Time</th>
               <th>Check Out Time</th>
               <th>Total Hours</th>
+              {currentUser?.role === 'admin' && <th>Activity Note</th>}
               <th className="print-hide">Action</th>
             </tr>
           </thead>
@@ -180,13 +234,18 @@ const Attendance = () => {
                     <button 
                       className="btn btn-secondary" 
                       style={{ padding: '0.25rem 0.75rem', fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: '0.25rem', backgroundColor: 'var(--status-due-bg)', color: 'var(--status-due)', border: 'none' }}
-                      onClick={() => handleCheckOut(item)}
+                      onClick={() => handleCheckOutClick(item)}
                     >
                       <LogOut size={14} /> Check Out Now
                     </button>
                   )}
                 </td>
                 <td style={{ fontWeight: 'bold' }}>{item.totalHours}</td>
+                {currentUser?.role === 'admin' && (
+                  <td style={{ maxWidth: '250px', whiteSpace: 'normal', fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
+                    {item.note || '-'}
+                  </td>
+                )}
                 <td className="print-hide">
                   <button className="btn-icon" onClick={() => handleDelete(item.id)} title="Delete" style={{ color: 'var(--status-due)' }}>
                     <Trash2 size={16} />
@@ -196,7 +255,7 @@ const Attendance = () => {
             ))}
             {attendanceList.length === 0 && (
               <tr>
-                <td colSpan="6" style={{ textAlign: 'center', color: 'var(--text-muted)', padding: '2rem' }}>
+                <td colSpan={currentUser?.role === 'admin' ? "7" : "6"} style={{ textAlign: 'center', color: 'var(--text-muted)', padding: '2rem' }}>
                   No attendance records found.
                 </td>
               </tr>
