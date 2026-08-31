@@ -3,7 +3,8 @@ import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
   PieChart, Pie, Cell
 } from 'recharts';
-import { Users, CreditCard, TrendingUp, DollarSign } from 'lucide-react';
+import { Users, CreditCard, TrendingUp, DollarSign, UserPlus, BookOpen, PlusCircle, ArrowRight } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { db } from '../db';
 
 const COLORS = ['#6366F1', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#EC4899'];
@@ -17,6 +18,7 @@ const Dashboard = () => {
   });
 
   const [courseData, setCourseData] = useState([]);
+  const [recentStudents, setRecentStudents] = useState([]);
 
   useEffect(() => {
     const fetchStats = async () => {
@@ -72,17 +74,18 @@ const Dashboard = () => {
       setCourseData(formattedCourseData);
 
       // Marketing Breakdown
-      let digital = 0;
-      let physical = 0;
-      marketing.forEach(m => {
-        if (m.type === 'Digital Marketing') digital += (m.amount || 0);
-        if (m.type === 'Physical Marketing') physical += (m.amount || 0);
-      });
-      
+      const digitalMarketing = marketing.filter(m => m.type === 'Digital Marketing').reduce((s, i) => s + (i.amount || 0), 0);
+      const physicalMarketing = marketing.filter(m => m.type === 'Physical Marketing').reduce((s, i) => s + (i.amount || 0), 0);
       setMarketingData([
-        { name: 'Digital', value: digital },
-        { name: 'Physical', value: physical }
+        { name: 'Digital Marketing', value: digitalMarketing },
+        { name: 'Physical Marketing', value: physicalMarketing }
       ]);
+
+      // Fetch Recent 5 Students
+      const recent = students
+        .sort((a, b) => new Date(b.admissionDate || 0) - new Date(a.admissionDate || 0))
+        .slice(0, 5);
+      setRecentStudents(recent);
     };
 
     fetchStats();
@@ -95,9 +98,27 @@ const Dashboard = () => {
 
   return (
     <div className="dashboard-page">
-      <div style={{ marginBottom: '2rem' }}>
-        <h1 style={{ marginBottom: '0.5rem' }}>Dashboard Overview</h1>
-        <p className="text-muted">Lifetime Financial & Admission Metrics</p>
+      <div style={{ marginBottom: '2rem', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', flexWrap: 'wrap', gap: '1rem' }}>
+        <div>
+          <h1 style={{ marginBottom: '0.5rem', fontSize: '1.8rem' }}>Welcome back, Admin 👋</h1>
+          <p className="text-muted">Here is what's happening with your academy today. <b>{new Date().toLocaleDateString('en-GB', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</b></p>
+        </div>
+      </div>
+
+      {/* Quick Actions */}
+      <div className="quick-actions">
+        <Link to="/students" className="quick-action-btn">
+          <UserPlus size={18} /> Add Student
+        </Link>
+        <Link to="/fees" className="quick-action-btn">
+          <CreditCard size={18} /> Collect Fee
+        </Link>
+        <Link to="/mock-tests" className="quick-action-btn">
+          <BookOpen size={18} /> Add Mock Test
+        </Link>
+        <Link to="/expenses" className="quick-action-btn">
+          <PlusCircle size={18} /> Record Expense
+        </Link>
       </div>
 
       {/* Stat Cards */}
@@ -143,8 +164,60 @@ const Dashboard = () => {
         </div>
       </div>
 
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1.5rem', marginTop: '2rem' }}>
+        
+        {/* Recent Activity Mini Table */}
+        <div className="glass-panel" style={{ gridColumn: '1 / -1' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+            <h3 style={{ margin: 0 }}>Recent Admissions</h3>
+            <Link to="/students" style={{ color: 'var(--accent-primary)', textDecoration: 'none', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+              View All <ArrowRight size={14} />
+            </Link>
+          </div>
+          <div className="table-container" style={{ marginTop: 0 }}>
+            <table className="mini-table">
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>Student Name</th>
+                  <th>ID</th>
+                  <th>Course</th>
+                </tr>
+              </thead>
+              <tbody>
+                {recentStudents.length === 0 ? (
+                  <tr>
+                    <td colSpan="4" style={{ textAlign: 'center', color: 'var(--text-muted)' }}>No recent admissions.</td>
+                  </tr>
+                ) : (
+                  recentStudents.map((s, i) => (
+                    <tr key={s.id || i}>
+                      <td>{s.admissionDate ? new Date(s.admissionDate).toLocaleDateString() : 'N/A'}</td>
+                      <td style={{ fontWeight: 500, color: 'var(--text-primary)' }}>{s.name}</td>
+                      <td>{s.studentId}</td>
+                      <td>
+                        <span style={{ 
+                          padding: '0.25rem 0.5rem', 
+                          background: 'rgba(59, 130, 246, 0.1)', 
+                          color: 'var(--accent-primary)', 
+                          borderRadius: '12px', 
+                          fontSize: '0.75rem' 
+                        }}>
+                          {s.course}
+                        </span>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      </div>
+
       {/* Charts Section */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem', marginTop: '2rem' }} className="form-grid">
         
         <div className="glass-panel">
           <h3>Course-wise Students</h3>
