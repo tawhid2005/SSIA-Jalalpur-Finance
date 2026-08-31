@@ -4,7 +4,8 @@ import { LogIn, LogOut, Trash2, Clock } from 'lucide-react';
 
 const Attendance = ({ currentUser }) => {
   const [attendanceList, setAttendanceList] = useState([]);
-  const isTeacherOrManager = currentUser?.role === 'teacher' || currentUser?.role === 'manager';
+  const role = currentUser?.role?.toLowerCase();
+  const isTeacherOrManager = role === 'teacher' || role === 'manager';
   const [teacherName, setTeacherName] = useState(isTeacherOrManager ? currentUser.name : '');
   const [deleteId, setDeleteId] = useState(null);
   const [checkOutRecord, setCheckOutRecord] = useState(null);
@@ -102,7 +103,7 @@ const Attendance = ({ currentUser }) => {
       note: ''
     });
 
-    if (currentUser?.role !== 'teacher') {
+    if (role !== 'teacher') {
       setTeacherName('');
     }
     loadAttendance();
@@ -300,7 +301,7 @@ const Attendance = ({ currentUser }) => {
                   <th>Check In Time</th>
                   <th>Check Out Time</th>
                   <th>Total Hours</th>
-                  <th>Activity Note</th>
+                  {role === 'admin' && <th>Activity Note</th>}
                   <th className="print-hide">Action</th>
                 </tr>
               </thead>
@@ -322,7 +323,8 @@ const Attendance = ({ currentUser }) => {
                       ) : (
                         <button 
                           className="btn btn-secondary" 
-                          style={{ padding: '0.25rem 0.75rem', fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: '0.25rem', backgroundColor: 'var(--status-due-bg)', color: 'var(--status-due)', border: 'none' }}
+                          disabled={role === 'teacher'}
+                          style={role === 'teacher' ? { background: 'rgba(255,255,255,0.05)', color: 'var(--text-muted)' } : { padding: '0.25rem 0.75rem', fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: '0.25rem', backgroundColor: 'var(--status-due-bg)', color: 'var(--status-due)', border: 'none' }}
                           onClick={() => handleCheckOutClick(item)}
                         >
                           <LogOut size={14} /> Check Out Now
@@ -330,9 +332,11 @@ const Attendance = ({ currentUser }) => {
                       )}
                     </td>
                     <td style={{ fontWeight: 'bold' }}>{item.totalHours}</td>
-                    <td style={{ maxWidth: '250px', whiteSpace: 'normal', fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
-                      {item.note || '-'}
-                    </td>
+                    {role === 'admin' && (
+                      <td style={{ maxWidth: '250px', whiteSpace: 'normal', fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
+                        {item.note || '-'}
+                      </td>
+                    )}
                     <td className="print-hide">
                       <button className="btn-icon" onClick={() => handleDelete(item.id)} title="Delete" style={{ color: 'var(--status-due)' }}>
                         <Trash2 size={16} />
@@ -342,7 +346,7 @@ const Attendance = ({ currentUser }) => {
                 ))}
                 {attendanceList.length === 0 && (
                   <tr>
-                    <td colSpan="7" style={{ textAlign: 'center', color: 'var(--text-muted)', padding: '2rem' }}>
+                    <td colSpan={role === 'admin' ? "7" : "6"} style={{ textAlign: 'center', color: 'var(--text-muted)', padding: '2rem' }}>
                       No attendance records found.
                     </td>
                   </tr>

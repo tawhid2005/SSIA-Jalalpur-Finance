@@ -39,7 +39,9 @@ const Sidebar = ({ onLogout, isMobileOpen, setMobileOpen, currentUser }) => {
   
   let navItems = [];
   
-  if (currentUser?.role === 'admin') {
+  const role = currentUser?.role?.toLowerCase();
+
+  if (role === 'admin') {
     navItems = [
       { path: '/', icon: LayoutDashboard, label: 'Dashboard' },
       { path: '/students', icon: Users, label: 'Students Master' },
@@ -54,7 +56,7 @@ const Sidebar = ({ onLogout, isMobileOpen, setMobileOpen, currentUser }) => {
       { path: '/staff-accounts', icon: UserCog, label: 'Staff Accounts' },
       { path: '/reports', icon: PieChart, label: 'Reports & P&L' }
     ];
-  } else if (currentUser?.role === 'manager') {
+  } else if (role === 'manager') {
     navItems = [
       { path: '/students', icon: Users, label: 'Students Master' },
       { path: '/mock-tests', icon: FileText, label: 'Mock Tests' },
@@ -167,7 +169,24 @@ const App = () => {
   useEffect(() => {
     const user = localStorage.getItem('currentUser');
     if (user) {
-      setCurrentUser(JSON.parse(user));
+      const parsedUser = JSON.parse(user);
+      if (parsedUser.role === 'admin') {
+        setCurrentUser(parsedUser);
+      } else {
+        // Fallback set while loading
+        setCurrentUser(parsedUser);
+        // Force refresh role from DB in case it was changed or stale
+        import('./db').then(({ db }) => {
+          db.staff_accounts.toArray().then(accounts => {
+            const acc = accounts.find(a => a.username === parsedUser.username);
+            if (acc && acc.role !== parsedUser.role) {
+              const updatedUser = { ...parsedUser, role: acc.role };
+              localStorage.setItem('currentUser', JSON.stringify(updatedUser));
+              setCurrentUser(updatedUser);
+            }
+          });
+        });
+      }
     }
   }, []);
 
@@ -198,7 +217,7 @@ const App = () => {
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
               <img src="/pwa-icon.png" alt="Logo" style={{ width: '32px', height: '32px', borderRadius: '4px', background: 'white', padding: '2px' }} />
               <span style={{ fontWeight: 'bold' }}>
-                {currentUser.role === 'admin' ? 'SSIA Admin' : currentUser.role === 'manager' ? 'SSIA Manager' : 'SSIA Staff'}
+                {currentUser.role?.toLowerCase() === 'admin' ? 'SSIA Admin' : currentUser.role?.toLowerCase() === 'manager' ? 'SSIA Manager' : 'SSIA Staff'}
               </span>
             </div>
             <button onClick={() => setIsMobileMenuOpen(true)} style={{ background: 'transparent', border: 'none', color: 'var(--text-primary)' }}>
@@ -206,7 +225,7 @@ const App = () => {
             </button>
           </div>
           <Routes>
-            {currentUser.role === 'admin' ? (
+            {currentUser.role?.toLowerCase() === 'admin' ? (
               <>
                 <Route path="/" element={<Dashboard />} />
                 <Route path="/students" element={<Students />} />
@@ -221,7 +240,7 @@ const App = () => {
                 <Route path="/staff-accounts" element={<StaffAccounts />} />
                 <Route path="/reports" element={<Reports />} />
               </>
-            ) : currentUser.role === 'manager' ? (
+            ) : currentUser.role?.toLowerCase() === 'manager' ? (
               <>
                 <Route path="/students" element={<Students />} />
                 <Route path="/mock-tests" element={<MockTests />} />
