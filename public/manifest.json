@@ -1,0 +1,16 @@
+{
+  "short_name": "Shah Sultan",
+  "name": "Shah Sultan IELTS Academy",
+  "icons": [
+    {
+      "src": "/pwa-icon.png",
+      "type": "image/png",
+      "sizes": "192x192 512x512",
+      "purpose": "any maskable"
+    }
+  ],
+  "start_url": "/",
+  "display": "standalone",
+  "theme_color": "#0F172A",
+  "background_color": "#0F172A"
+}
