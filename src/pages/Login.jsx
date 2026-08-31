@@ -29,7 +29,7 @@ const Login = ({ onLogin }) => {
       );
 
       if (account) {
-        onLogin({ role: 'teacher', username: account.username, name: account.name });
+        onLogin({ role: account.role || 'teacher', username: account.username, name: account.name });
       } else {
         setError('Invalid Username or Password');
       }
