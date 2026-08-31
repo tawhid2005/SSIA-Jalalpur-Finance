@@ -8,6 +8,10 @@ const Attendance = ({ currentUser }) => {
   const [deleteId, setDeleteId] = useState(null);
   const [checkOutRecord, setCheckOutRecord] = useState(null);
   const [activityNote, setActivityNote] = useState('');
+  const [activeSession, setActiveSession] = useState(null);
+  const [elapsedTime, setElapsedTime] = useState('00:00:00');
+
+  const isTeacher = currentUser?.role === 'teacher';
 
   const loadAttendance = async () => {
     const data = await db.attendance.toArray();
@@ -19,11 +23,40 @@ const Attendance = ({ currentUser }) => {
     }
     
     setAttendanceList(filteredData);
+
+    if (isTeacher) {
+      const today = new Date().toISOString().split('T')[0];
+      const active = filteredData.find(a => a.date === today && !a.checkOutTime);
+      setActiveSession(active || null);
+    }
   };
 
   useEffect(() => {
     loadAttendance();
   }, []);
+
+  // Live Timer Effect
+  useEffect(() => {
+    let interval;
+    if (activeSession && activeSession.checkInTime) {
+      interval = setInterval(() => {
+        const start = new Date(activeSession.checkInTime).getTime();
+        const now = new Date().getTime();
+        const diff = now - start;
+        
+        if (diff < 0) return;
+
+        const h = Math.floor(diff / 3600000).toString().padStart(2, '0');
+        const m = Math.floor((diff % 3600000) / 60000).toString().padStart(2, '0');
+        const s = Math.floor((diff % 60000) / 1000).toString().padStart(2, '0');
+        
+        setElapsedTime(`${h}:${m}:${s}`);
+      }, 1000);
+    } else {
+      setElapsedTime('00:00:00');
+    }
+    return () => clearInterval(interval);
+  }, [activeSession]);
 
   const calculateTotalHours = (checkIn, checkOut) => {
     if (!checkIn || !checkOut) return '-';
@@ -174,95 +207,150 @@ const Attendance = ({ currentUser }) => {
 
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem', flexWrap: 'wrap', gap: '1rem' }}>
         <div>
-          <h1>Staff Attendance</h1>
-          <p className="text-muted">Track daily arrival, departure, and working hours</p>
+          <h1>{isTeacher ? 'My Attendance' : 'Staff Attendance'}</h1>
+          <p className="text-muted">{isTeacher ? 'Check in and track your daily work hours' : 'Track daily arrival, departure, and working hours'}</p>
         </div>
       </div>
 
-      <div className="glass-panel" style={{ marginBottom: '2rem' }}>
-        <h3 style={{ marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-          <Clock size={20} color="var(--accent-primary)" />
-          Daily Check-In
-        </h3>
-        <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', alignItems: 'flex-end' }}>
-          <div className="input-group" style={{ flex: '1', minWidth: '250px' }}>
-            <label>Staff/Teacher Name</label>
-            <input 
-              type="text" 
-              placeholder="Enter your name..." 
-              value={teacherName} 
-              onChange={(e) => setTeacherName(e.target.value)} 
-              disabled={currentUser?.role === 'teacher'}
-              style={currentUser?.role === 'teacher' ? { background: 'rgba(255,255,255,0.05)', color: 'var(--text-muted)' } : {}}
-            />
-          </div>
-          <button className="btn btn-primary" onClick={handleCheckIn} style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', height: 'fit-content' }}>
-            <LogIn size={18} /> Check In Now
-          </button>
-        </div>
-      </div>
-
-      <div className="table-container">
-        <table>
-          <thead>
-            <tr>
-              <th>Date</th>
-              <th>Name</th>
-              <th>Check In Time</th>
-              <th>Check Out Time</th>
-              <th>Total Hours</th>
-              {currentUser?.role === 'admin' && <th>Activity Note</th>}
-              <th className="print-hide">Action</th>
-            </tr>
-          </thead>
-          <tbody>
-            {attendanceList.map(item => (
-              <tr key={item.id}>
-                <td style={{ fontWeight: 500 }}>{formatDate(item.date)}</td>
-                <td style={{ fontWeight: 'bold', color: 'var(--text-primary)' }}>{item.teacher}</td>
-                <td>
-                  <span style={{ padding: '0.25rem 0.5rem', background: 'rgba(16, 185, 129, 0.1)', color: '#10B981', borderRadius: '4px' }}>
-                    {formatTime(item.checkInTime)}
-                  </span>
-                </td>
-                <td>
-                  {item.checkOutTime ? (
-                    <span style={{ padding: '0.25rem 0.5rem', background: 'rgba(239, 68, 68, 0.1)', color: '#EF4444', borderRadius: '4px' }}>
-                      {formatTime(item.checkOutTime)}
-                    </span>
-                  ) : (
-                    <button 
-                      className="btn btn-secondary" 
-                      style={{ padding: '0.25rem 0.75rem', fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: '0.25rem', backgroundColor: 'var(--status-due-bg)', color: 'var(--status-due)', border: 'none' }}
-                      onClick={() => handleCheckOutClick(item)}
-                    >
-                      <LogOut size={14} /> Check Out Now
-                    </button>
-                  )}
-                </td>
-                <td style={{ fontWeight: 'bold' }}>{item.totalHours}</td>
-                {currentUser?.role === 'admin' && (
-                  <td style={{ maxWidth: '250px', whiteSpace: 'normal', fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
-                    {item.note || '-'}
-                  </td>
-                )}
-                <td className="print-hide">
-                  <button className="btn-icon" onClick={() => handleDelete(item.id)} title="Delete" style={{ color: 'var(--status-due)' }}>
-                    <Trash2 size={16} />
-                  </button>
-                </td>
-              </tr>
-            ))}
-            {attendanceList.length === 0 && (
-              <tr>
-                <td colSpan={currentUser?.role === 'admin' ? "7" : "6"} style={{ textAlign: 'center', color: 'var(--text-muted)', padding: '2rem' }}>
-                  No attendance records found.
-                </td>
-              </tr>
+      {isTeacher ? (
+        // ================= TEACHER SPECIFIC UI =================
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2rem', marginTop: '3rem' }}>
+          
+          <div style={{ textAlign: 'center', padding: '2rem', background: 'var(--bg-panel)', borderRadius: 'var(--radius-lg)', border: '1px solid var(--border-light)', width: '100%', maxWidth: '400px', boxShadow: '0 10px 25px rgba(0,0,0,0.2)' }}>
+            <h2 style={{ marginBottom: '0.5rem', color: 'var(--text-primary)' }}>{currentUser.name}</h2>
+            <p style={{ color: 'var(--text-muted)', marginBottom: '2rem' }}>{new Date().toLocaleDateString('en-GB', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</p>
+            
+            {activeSession ? (
+              <>
+                <div style={{ fontSize: '3rem', fontWeight: 'bold', fontFamily: 'monospace', color: 'var(--accent-primary)', marginBottom: '0.5rem', textShadow: '0 0 20px rgba(59, 130, 246, 0.4)' }}>
+                  {elapsedTime}
+                </div>
+                <p style={{ color: 'var(--status-paid)', marginBottom: '2rem', fontWeight: '500', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}>
+                  <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: 'var(--status-paid)', animation: 'pulse 2s infinite' }}></div>
+                  Checked In (Since {formatTime(activeSession.checkInTime)})
+                </p>
+                
+                <button 
+                  onClick={() => handleCheckOutClick(activeSession)}
+                  style={{ width: '100%', padding: '1.25rem', fontSize: '1.2rem', fontWeight: 'bold', borderRadius: '50px', background: 'var(--status-due)', color: 'white', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', boxShadow: '0 4px 15px rgba(239, 68, 68, 0.4)', transition: 'transform 0.2s' }}
+                  onMouseOver={(e) => e.currentTarget.style.transform = 'scale(1.02)'}
+                  onMouseOut={(e) => e.currentTarget.style.transform = 'scale(1)'}
+                >
+                  <LogOut size={24} /> Check Out Now
+                </button>
+              </>
+            ) : (
+              <>
+                <div style={{ fontSize: '3rem', fontWeight: 'bold', fontFamily: 'monospace', color: 'var(--text-muted)', marginBottom: '0.5rem', opacity: 0.5 }}>
+                  00:00:00
+                </div>
+                <p style={{ color: 'var(--text-muted)', marginBottom: '2rem' }}>Ready to start your day?</p>
+                
+                <button 
+                  onClick={handleCheckIn}
+                  style={{ width: '100%', padding: '1.25rem', fontSize: '1.2rem', fontWeight: 'bold', borderRadius: '50px', background: 'var(--accent-primary)', color: 'white', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', boxShadow: '0 4px 15px rgba(59, 130, 246, 0.4)', transition: 'transform 0.2s' }}
+                  onMouseOver={(e) => e.currentTarget.style.transform = 'scale(1.02)'}
+                  onMouseOut={(e) => e.currentTarget.style.transform = 'scale(1)'}
+                >
+                  <LogIn size={24} /> Check In
+                </button>
+              </>
             )}
-          </tbody>
-        </table>
-      </div>
+          </div>
+          
+          <style dangerouslySetInnerHTML={{__html: `
+            @keyframes pulse {
+              0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
+              70% { box-shadow: 0 0 0 10px rgba(16, 185, 129, 0); }
+              100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+            }
+          `}} />
+        </div>
+      ) : (
+        // ================= ADMIN VIEW UI =================
+        <>
+          <div className="glass-panel" style={{ marginBottom: '2rem' }}>
+            <h3 style={{ marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <Clock size={20} color="var(--accent-primary)" />
+              Daily Check-In
+            </h3>
+            <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', alignItems: 'flex-end' }}>
+              <div className="input-group" style={{ flex: '1', minWidth: '250px' }}>
+                <label>Staff/Teacher Name</label>
+                <input 
+                  type="text" 
+                  placeholder="Enter your name..." 
+                  value={teacherName} 
+                  onChange={(e) => setTeacherName(e.target.value)} 
+                />
+              </div>
+              <button className="btn btn-primary" onClick={handleCheckIn} style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', height: 'fit-content' }}>
+                <LogIn size={18} /> Check In Now
+              </button>
+            </div>
+          </div>
+
+          <div className="table-container">
+            <table>
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>Name</th>
+                  <th>Check In Time</th>
+                  <th>Check Out Time</th>
+                  <th>Total Hours</th>
+                  <th>Activity Note</th>
+                  <th className="print-hide">Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                {attendanceList.map(item => (
+                  <tr key={item.id}>
+                    <td style={{ fontWeight: 500 }}>{formatDate(item.date)}</td>
+                    <td style={{ fontWeight: 'bold', color: 'var(--text-primary)' }}>{item.teacher}</td>
+                    <td>
+                      <span style={{ padding: '0.25rem 0.5rem', background: 'rgba(16, 185, 129, 0.1)', color: '#10B981', borderRadius: '4px' }}>
+                        {formatTime(item.checkInTime)}
+                      </span>
+                    </td>
+                    <td>
+                      {item.checkOutTime ? (
+                        <span style={{ padding: '0.25rem 0.5rem', background: 'rgba(239, 68, 68, 0.1)', color: '#EF4444', borderRadius: '4px' }}>
+                          {formatTime(item.checkOutTime)}
+                        </span>
+                      ) : (
+                        <button 
+                          className="btn btn-secondary" 
+                          style={{ padding: '0.25rem 0.75rem', fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: '0.25rem', backgroundColor: 'var(--status-due-bg)', color: 'var(--status-due)', border: 'none' }}
+                          onClick={() => handleCheckOutClick(item)}
+                        >
+                          <LogOut size={14} /> Check Out Now
+                        </button>
+                      )}
+                    </td>
+                    <td style={{ fontWeight: 'bold' }}>{item.totalHours}</td>
+                    <td style={{ maxWidth: '250px', whiteSpace: 'normal', fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
+                      {item.note || '-'}
+                    </td>
+                    <td className="print-hide">
+                      <button className="btn-icon" onClick={() => handleDelete(item.id)} title="Delete" style={{ color: 'var(--status-due)' }}>
+                        <Trash2 size={16} />
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+                {attendanceList.length === 0 && (
+                  <tr>
+                    <td colSpan="7" style={{ textAlign: 'center', color: 'var(--text-muted)', padding: '2rem' }}>
+                      No attendance records found.
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </>
+      )}
     </div>
   );
 };
