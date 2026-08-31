@@ -15,7 +15,8 @@ import {
   Menu,
   X,
   MapPin,
-  Phone
+  Phone,
+  Clock
 } from 'lucide-react';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
@@ -27,6 +28,7 @@ import Income from './pages/Income';
 import Expenses from './pages/Expenses';
 import Marketing from './pages/Marketing';
 import TeacherSalary from './pages/TeacherSalary';
+import Attendance from './pages/Attendance';
 import Reports from './pages/Reports';
 import './index.css';
 
@@ -43,6 +45,7 @@ const Sidebar = ({ onLogout, isMobileOpen, setMobileOpen }) => {
     { path: '/expenses', icon: TrendingDown, label: 'General Expenses' },
     { path: '/marketing', icon: Megaphone, label: 'Marketing Expenses' },
     { path: '/salary', icon: Briefcase, label: 'Teacher Salary' },
+    { path: '/attendance', icon: Clock, label: 'Staff Attendance' },
     { path: '/reports', icon: PieChart, label: 'Lifetime Reports & P&L' }
   ];
 
@@ -186,6 +189,7 @@ const App = () => {
             <Route path="/expenses" element={<Expenses />} />
             <Route path="/marketing" element={<Marketing />} />
             <Route path="/salary" element={<TeacherSalary />} />
+            <Route path="/attendance" element={<Attendance />} />
             <Route path="/reports" element={<Reports />} />
           </Routes>
         </main>

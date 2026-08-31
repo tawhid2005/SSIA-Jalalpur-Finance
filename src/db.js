@@ -147,7 +147,8 @@ export const db = {
   incomes: new FirestoreCollectionWrapper('incomes'),
   expenses: new FirestoreCollectionWrapper('expenses'),
   marketing: new FirestoreCollectionWrapper('marketing'),
-  teacher_salary: new FirestoreCollectionWrapper('teacher_salary')
+  teacher_salary: new FirestoreCollectionWrapper('teacher_salary'),
+  attendance: new FirestoreCollectionWrapper('attendance')
 };
 
 // Auto ID generation specifically for students
