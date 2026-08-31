@@ -257,6 +257,7 @@ const App = () => {
               <Route path="*" element={<Attendance currentUser={currentUser} />} />
             )}
           </Routes>
+          </div>
         </main>
       </div>
     </Router>
