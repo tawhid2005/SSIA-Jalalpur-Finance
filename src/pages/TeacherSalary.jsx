@@ -15,6 +15,7 @@ const TeacherSalary = () => {
     paid: ''
   });
   const [editingId, setEditingId] = useState(null);
+  const [deleteId, setDeleteId] = useState(null);
 
   const loadSalaries = async () => {
     const data = await db.teacher_salary.toArray();
@@ -76,15 +77,33 @@ const TeacherSalary = () => {
     setShowForm(true);
   };
 
-  const handleDelete = async (id) => {
-    if (window.confirm("Are you sure you want to delete this salary record?")) {
-      await db.teacher_salary.delete(id);
-      loadSalaries();
-    }
+  const handleDelete = (id) => {
+    setDeleteId(id);
+  };
+
+  const confirmDelete = async () => {
+    if (!deleteId) return;
+    await db.teacher_salary.delete(deleteId);
+    setDeleteId(null);
+    loadSalaries();
   };
 
   return (
     <div>
+      {/* Delete Confirmation Modal */}
+      {deleteId && (
+        <div className="print-modal-overlay" style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.8)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div className="glass-panel" style={{ width: '400px', maxWidth: '90%', background: 'var(--bg-panel)', textAlign: 'center' }}>
+            <h3 style={{ color: 'var(--status-due)', marginBottom: '1rem' }}>Confirm Deletion</h3>
+            <p>Are you sure you want to delete this salary record? This action cannot be undone.</p>
+            <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', marginTop: '2rem' }}>
+              <button className="btn btn-secondary" onClick={() => setDeleteId(null)}>Cancel</button>
+              <button className="btn btn-primary" style={{ backgroundColor: 'var(--status-due)' }} onClick={confirmDelete}>Yes, Delete</button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
         <div>
           <h1>Teacher Salary</h1>
