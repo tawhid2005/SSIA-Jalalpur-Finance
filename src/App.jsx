@@ -65,7 +65,6 @@ const Sidebar = ({ onLogout, isMobileOpen, setMobileOpen, currentUser }) => {
       { path: '/income', icon: TrendingUp, label: 'Other Income' },
       { path: '/expenses', icon: TrendingDown, label: 'General Expenses' },
       { path: '/marketing', icon: Megaphone, label: 'Marketing Expenses' },
-      { path: '/salary', icon: Briefcase, label: 'Teacher Salary' },
       { path: '/attendance', icon: Clock, label: 'My Attendance' }
     ];
   } else {
@@ -249,7 +248,6 @@ const App = () => {
                 <Route path="/income" element={<Income />} />
                 <Route path="/expenses" element={<Expenses />} />
                 <Route path="/marketing" element={<Marketing />} />
-                <Route path="/salary" element={<TeacherSalary />} />
                 <Route path="/attendance" element={<Attendance currentUser={currentUser} />} />
                 {/* Fallback route for manager */}
                 <Route path="*" element={<Students />} />
