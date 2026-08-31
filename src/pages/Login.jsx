@@ -42,7 +42,7 @@ const Login = ({ onLogin }) => {
   };
 
   return (
-    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh', width: '100vw', background: 'var(--bg-main)' }}>
+    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh', width: '100%', background: 'var(--bg-main)' }}>
       <div className="glass-panel" style={{ width: '400px', maxWidth: '90%', padding: '3rem 2rem', textAlign: 'center' }}>
         <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '1.5rem' }}>
           <img src="/logo.png" alt="Logo" style={{ width: '100%', maxWidth: '280px', height: 'auto', borderRadius: '12px', background: 'white', padding: '1rem' }} />

@@ -205,23 +205,24 @@ const App = () => {
 
   return (
     <Router>
-      <div className="app-container">
+      <div className="app-container" style={{ display: 'flex', height: '100vh', width: '100%', background: 'var(--bg-main)' }}>
         {isMobileMenuOpen && (
           <div className="mobile-overlay" onClick={() => setIsMobileMenuOpen(false)}></div>
         )}
         <Sidebar onLogout={handleLogout} isMobileOpen={isMobileMenuOpen} setMobileOpen={setIsMobileMenuOpen} currentUser={currentUser} />
         
-        <main className="main-content">
-          <div className="mobile-header mobile-only" style={{ padding: '1rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid var(--border-light)', marginBottom: '1rem' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <img src="/pwa-icon.png" alt="Logo" style={{ width: '32px', height: '32px', borderRadius: '4px', background: 'white', padding: '2px' }} />
-              <span style={{ fontWeight: 'bold' }}>
-                {currentUser.role?.toLowerCase() === 'admin' ? 'SSIA Admin' : currentUser.role?.toLowerCase() === 'manager' ? 'SSIA Manager' : 'SSIA Staff'}
-              </span>
-            </div>
-            <button onClick={() => setIsMobileMenuOpen(true)} style={{ background: 'transparent', border: 'none', color: 'var(--text-primary)' }}>
-              <Menu size={28} />
-            </button>
+        <main className="main-content" style={{ flex: 1, overflowY: 'auto' }}>
+          <div style={{ maxWidth: '1400px', margin: '0 auto' }}>
+            <div className="mobile-header mobile-only" style={{ padding: '1rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid var(--border-light)', margin: '-1rem -1rem 1rem -1rem', background: 'var(--bg-panel)' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <img src="/pwa-icon.png" alt="Logo" style={{ width: '32px', height: '32px', borderRadius: '4px', background: 'white', padding: '2px' }} />
+                <span style={{ fontWeight: 'bold' }}>
+                  {currentUser.role?.toLowerCase() === 'admin' ? 'SSIA Admin' : currentUser.role?.toLowerCase() === 'manager' ? 'SSIA Manager' : 'SSIA Staff'}
+                </span>
+              </div>
+              <button onClick={() => setIsMobileMenuOpen(true)} style={{ background: 'transparent', border: 'none', color: 'var(--text-primary)' }}>
+                <Menu size={28} />
+              </button>
           </div>
           <Routes>
             {currentUser.role?.toLowerCase() === 'admin' ? (
