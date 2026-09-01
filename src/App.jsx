@@ -213,7 +213,7 @@ const App = () => {
         
         <main className="main-content" style={{ flex: 1, overflowY: 'auto' }}>
           <div style={{ maxWidth: '1400px', margin: '0 auto' }}>
-            <div className="mobile-header mobile-only" style={{ padding: '1rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid var(--border-light)', margin: '-1rem -1rem 1rem -1rem', background: 'var(--bg-panel)' }}>
+            <div className="mobile-header mobile-only" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                 <img src="/pwa-icon.png" alt="Logo" style={{ width: '32px', height: '32px', borderRadius: '4px', background: 'white', padding: '2px' }} />
                 <span style={{ fontWeight: 'bold' }}>

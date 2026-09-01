@@ -484,14 +484,57 @@ tbody tr:hover {
   
   .main-content {
     padding: 1rem;
+    padding-top: 5rem; /* Space for sticky header */
   }
   
+  .mobile-header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 998;
+    background: rgba(15, 23, 42, 0.85) !important;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05) !important;
+    margin: 0 !important;
+    padding: 1rem !important;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  }
+  
+  .glass-panel {
+    padding: 1.25rem;
+  }
+  
+  .stat-card {
+    padding: 1.25rem;
+  }
+
   .grid-cards {
     grid-template-columns: 1fr;
+    gap: 1rem;
   }
   
   .form-grid {
     grid-template-columns: 1fr;
+  }
+  
+  .quick-actions {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    padding-bottom: 0.5rem;
+    -webkit-overflow-scrolling: touch;
+    scroll-snap-type: x mandatory;
+  }
+  
+  .quick-actions::-webkit-scrollbar {
+    height: 4px;
+  }
+  
+  .quick-action-btn {
+    flex: 0 0 auto;
+    scroll-snap-align: start;
+    white-space: nowrap;
   }
   
   /* Tables on mobile */
