@@ -1,7 +1,6 @@
 import { initializeApp } from "firebase/app";
 import { getAnalytics } from "firebase/analytics";
 import {
-  getFirestore,
   collection,
   getDocs,
   getDoc,
@@ -14,7 +13,9 @@ import {
   limit,
   where,
   getCountFromServer,
-  enableIndexedDbPersistence
+  initializeFirestore,
+  persistentLocalCache,
+  persistentMultipleTabManager
 } from "firebase/firestore";
 
 const firebaseConfig = {
@@ -30,15 +31,10 @@ const firebaseConfig = {
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
 const analytics = getAnalytics(app);
-const firestoreDb = getFirestore(app);
 
-// Enable offline persistence (cache data locally)
-enableIndexedDbPersistence(firestoreDb).catch((err) => {
-  if (err.code == 'failed-precondition') {
-    console.warn("Multiple tabs open, persistence can only be enabled in one tab at a a time.");
-  } else if (err.code == 'unimplemented') {
-    console.warn("The current browser does not support all of the features required to enable persistence");
-  }
+// Use modern Firestore initialization with offline persistence
+const firestoreDb = initializeFirestore(app, {
+  localCache: persistentLocalCache({ tabManager: persistentMultipleTabManager() })
 });
 
 class FirestoreCollectionWrapper {
