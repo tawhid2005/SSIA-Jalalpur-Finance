@@ -11,6 +11,7 @@ const Students = () => {
   const [lastAdmitted, setLastAdmitted] = useState(null);
   const [editingId, setEditingId] = useState(null);
   const [deleteId, setDeleteId] = useState(null);
+  const [searchQuery, setSearchQuery] = useState('');
 
   // Form State
   const [formData, setFormData] = useState({
@@ -261,22 +262,35 @@ const Students = () => {
         </div>
       )}
 
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem', flexWrap: 'wrap', gap: '1rem' }}>
         <div>
           <h1>Students Master</h1>
           <p className="text-muted">Manage admissions and lifetime student records</p>
         </div>
-        <button className="btn btn-primary" onClick={() => {
-          if(showForm) {
-            setShowForm(false);
-            setEditingId(null);
-            setFormData({ name: '', guardianName: '', guardianPhone: '', phone: '', location: '', course: 'IELTS Regular', batch: '', admissionDate: new Date().toISOString().split('T')[0], courseFee: '', discount: '0', admissionPayment: '', paymentMethod: 'Cash', nextDueDate: '', notes: '' });
-          } else {
-            setShowForm(true);
-          }
-        }}>
-          <UserPlus size={18} /> {showForm ? 'Cancel' : 'New Admission'}
-        </button>
+        
+        <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', flexWrap: 'wrap' }}>
+          <div className="input-group" style={{ flexDirection: 'row', alignItems: 'center', background: 'var(--bg-panel)', border: '1px solid var(--border-light)', borderRadius: 'var(--radius-md)', padding: '0.25rem 0.75rem' }}>
+            <Search size={18} className="text-muted" />
+            <input 
+              type="text" 
+              placeholder="Search name, ID or phone..." 
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              style={{ border: 'none', background: 'transparent', boxShadow: 'none', padding: '0.5rem', width: '220px' }}
+            />
+          </div>
+          <button className="btn btn-primary" onClick={() => {
+            if(showForm) {
+              setShowForm(false);
+              setEditingId(null);
+              setFormData({ name: '', guardianName: '', guardianPhone: '', phone: '', location: '', course: 'IELTS Regular', batch: '', admissionDate: new Date().toISOString().split('T')[0], courseFee: '', discount: '0', admissionPayment: '', paymentMethod: 'Cash', nextDueDate: '', notes: '' });
+            } else {
+              setShowForm(true);
+            }
+          }}>
+            <UserPlus size={18} /> {showForm ? 'Cancel' : 'New Admission'}
+          </button>
+        </div>
       </div>
 
       {showForm && (
@@ -383,9 +397,17 @@ const Students = () => {
             </tr>
           </thead>
           <tbody>
-            {students.length === 0 ? (
+            {students.filter(student => 
+              student.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+              student.id?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+              student.phone?.includes(searchQuery)
+            ).length === 0 ? (
               <tr><td colSpan="8" style={{ textAlign: 'center', padding: '2rem' }}>No students found.</td></tr>
-            ) : students.map(student => (
+            ) : students.filter(student => 
+              student.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+              student.id?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+              student.phone?.includes(searchQuery)
+            ).map(student => (
               <tr key={student.id}>
                 <td style={{ fontWeight: '600', color: 'var(--accent-primary)' }}>{student.id}</td>
                 <td>
