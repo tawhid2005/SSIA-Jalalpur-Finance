@@ -426,16 +426,18 @@ const Students = () => {
                     {student.status || 'Active'}
                   </span>
                 </td>
-                <td style={{ display: 'flex', gap: '0.5rem' }}>
-                  <button className="btn btn-secondary" style={{ padding: '0.4rem', fontSize: '0.8rem' }} onClick={() => handleEdit(student)}>
-                    <Edit size={16} /> Edit
-                  </button>
-                  <button className="btn btn-primary" style={{ padding: '0.4rem', fontSize: '0.8rem' }} onClick={() => setLastAdmitted(student)}>
-                    <FileText size={16} /> Slip
-                  </button>
-                  <button className="btn btn-secondary" style={{ padding: '0.4rem', fontSize: '0.8rem', color: 'var(--status-due)', borderColor: 'var(--status-due-bg)' }} onClick={() => handleDelete(student.id)}>
-                    <Trash2 size={16} />
-                  </button>
+                <td>
+                  <div style={{ display: 'flex', gap: '0.5rem' }}>
+                    <button className="btn btn-secondary" style={{ padding: '0.4rem', fontSize: '0.8rem' }} onClick={() => handleEdit(student)}>
+                      <Edit size={16} /> Edit
+                    </button>
+                    <button className="btn btn-primary" style={{ padding: '0.4rem', fontSize: '0.8rem' }} onClick={() => setLastAdmitted(student)}>
+                      <FileText size={16} /> Slip
+                    </button>
+                    <button className="btn btn-secondary" style={{ padding: '0.4rem', fontSize: '0.8rem', color: 'var(--status-due)', borderColor: 'var(--status-due-bg)' }} onClick={() => handleDelete(student.id)}>
+                      <Trash2 size={16} />
+                    </button>
+                  </div>
                 </td>
               </tr>
             ))}
