@@ -258,6 +258,12 @@ const App = () => {
             )}
           </Routes>
           </div>
+          
+          {/* Developer Credit */}
+          <div className="print-hide developer-credit" style={{ position: 'fixed', bottom: '1.5rem', right: '1.5rem', padding: '0.75rem 1.25rem', background: 'rgba(15, 23, 42, 0.7)', backdropFilter: 'blur(8px)', border: '1px solid rgba(59, 130, 246, 0.2)', borderRadius: '12px', zIndex: 9999, fontSize: '0.75rem', color: 'var(--text-muted)', boxShadow: '0 8px 16px rgba(0,0,0,0.4)', textAlign: 'right', transition: 'all 0.3s ease', opacity: '0.8' }}>
+            <div style={{ marginBottom: '4px' }}>Developed by <strong style={{ color: 'white', fontWeight: '600' }}>MD Talha Hussain Tawhid</strong></div>
+            <div style={{ opacity: 0.8 }}>Email: <a href="mailto:tawhidh2005@gmail.com" style={{ color: 'var(--accent-primary)', textDecoration: 'none' }}>tawhidh2005@gmail.com</a></div>
+          </div>
         </main>
       </div>
     </Router>
